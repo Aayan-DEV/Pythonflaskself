@@ -13,7 +13,7 @@ def run_bot(token):
 
     @client.event
     async def on_ready():
-        print(f"Selfbot {client.user} is ready to be used.")
+        print(f"Logged in as: {client.user} (ID: {client.user.id})")
 
     @client.command()
     async def spam(ctx, num: int):
@@ -22,16 +22,39 @@ def run_bot(token):
 
     client.run(token, bot=False)
 
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    if request.method == 'POST':
+        url = request.form['url']
+        # Here you could start the bot using the URL or do other processing
+        return jsonify({'message': f'URL received: {url}'})
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Submit URL</title>
+    </head>
+    <body>
+        <h1>Enter URL to Process</h1>
+        <form method="post" action="/">
+            <input type="text" name="url" placeholder="Enter URL here" required>
+            <button type="submit">Submit</button>
+        </form>
+    </body>
+    </html>
+    '''
+
 @app.route('/start_bot', methods=['POST'])
 def start_bot():
     data = request.get_json()
     token = data.get('token')
     if token:
         thread = threading.Thread(target=run_bot, args=(token,))
+        thread.daemon = True
         thread.start()
         return jsonify({'message': 'Bot is starting'}), 200
     else:
         return jsonify({'error': 'No token provided'}), 400
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host='0.0.0.0', port=25522)
